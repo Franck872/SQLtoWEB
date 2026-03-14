@@ -24,9 +24,21 @@ async function updateMarkets() {
 
     const data = await buildMarkets();
 
-    await redis.set("markets:active", JSON.stringify(data));
+    if (!data) {
+      console.log("⚠️ No market data generated");
+      return;
+    }
 
-    await redis.publish("markets:update", JSON.stringify(data));
+    const json = JSON.stringify(data);
+
+    await redis.set(
+      "markets:active",
+      json,
+      "EX",
+      60
+    );
+
+    await redis.publish("markets:update", json);
 
     broadcast(data);
 
@@ -34,7 +46,7 @@ async function updateMarkets() {
 
   } catch (err) {
 
-    console.error("Market update error:", err);
+    console.error("❌ Market update error:", err);
 
   }
 
@@ -44,14 +56,48 @@ setInterval(updateMarkets, 15000);
 
 updateMarkets();
 
+app.get("/", (req, res) => {
+
+  res.json({
+    service: "Musical Market API",
+    status: "running",
+    endpoint: "/markets"
+  });
+
+});
+
 app.get("/markets", async (req, res) => {
 
-  const data = await redis.get("markets:active");
+  try {
 
-  res.json(JSON.parse(data || "{}"));
+    const data = await redis.get("markets:active");
+
+    if (!data) {
+      return res.json({
+        timestamp: Date.now(),
+        active_count: 0,
+        markets: []
+      });
+    }
+
+    res.setHeader("Content-Type", "application/json");
+
+    res.send(data);
+
+  } catch (err) {
+
+    console.error("❌ Markets route error:", err);
+
+    res.status(500).json({
+      error: "markets_fetch_failed"
+    });
+
+  }
 
 });
 
 server.listen(PORT, () => {
+
   console.log(`🚀 Backend running on port ${PORT}`);
+
 });
