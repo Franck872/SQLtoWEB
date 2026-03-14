@@ -42,7 +42,7 @@ async function updateMarkets() {
 
     broadcast(data);
 
-    console.log(`✅ Markets updated (${data.active_count})`);
+    console.log(`✅ Markets updated (${data.active_events})`);
 
   } catch (err) {
 
@@ -66,7 +66,7 @@ app.get("/", (req, res) => {
 
 });
 
-app.get("/api/markets", async (req, res) => {
+app.get("/api/markets", async (req, res) => {  // ← AJOUT DU "/" MANQUANT
 
   try {
 
