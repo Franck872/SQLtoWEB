@@ -66,34 +66,33 @@ app.get("/", (req, res) => {
 
 });
 
-app.get("/api/markets", async (req, res) => {  // ← AJOUT DU "/" MANQUANT
-
+app.get("/api/markets", async (req, res) => {
   try {
-
     const data = await redis.get("markets:active");
 
     if (!data) {
       return res.json({
         timestamp: Date.now(),
         active_count: 0,
-        markets: []
+        events: []
       });
     }
 
+    const parsed = JSON.parse(data);
+    
     res.setHeader("Content-Type", "application/json");
-
-    res.send(data);
+    res.json({
+      timestamp: parsed.timestamp,
+      active_count: parsed.active_events,
+      events: parsed.markets
+    });
 
   } catch (err) {
-
     console.error("❌ Markets route error:", err);
-
     res.status(500).json({
       error: "markets_fetch_failed"
     });
-
   }
-
 });
 
 server.listen(PORT, () => {
