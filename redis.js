@@ -8,16 +8,25 @@ const redisUrl = process.env.REDIS_URL;
 export const redis = new Redis(redisUrl, {
   maxRetriesPerRequest: null,
   enableReadyCheck: true,
-  reconnectOnError: () => true,
+
+  connectTimeout: 10000,
+
   retryStrategy(times) {
     const delay = Math.min(times * 200, 5000);
     return delay;
   },
-  tls: redisUrl.startsWith("rediss://") ? {} : undefined
+
+  reconnectOnError() {
+    return true;
+  },
+
+  tls: redisUrl?.startsWith("rediss://")
+    ? { rejectUnauthorized: false }
+    : undefined
 });
 
 redis.on("connect", () => {
-  console.log("✅ Connected to Redis");
+  console.log("✅ Redis connected");
 });
 
 redis.on("ready", () => {
@@ -33,5 +42,5 @@ redis.on("close", () => {
 });
 
 redis.on("reconnecting", () => {
-  console.log("🔄 Reconnecting to Redis...");
+  console.log("🔄 Redis reconnecting...");
 });
