@@ -6,35 +6,35 @@ export async function buildMarkets() {
 
   try {
 
-    const res = await client.query(`
-      SELECT
-        e.id,
-        e.title,
-        e.video_id,
-        e.views_current,
-        e.views_n1,
-        e.views_n2,
-        e.target_views,
-        e.speed,
-        e.trend,
-        e.deadline,
+const res = await client.query(`
+  SELECT
+    e.id,
+    e.title,
+    e.external_id AS video_id,
 
-        o.interval_index,
-        o.min_value,
-        o.max_value,
-        o.probability,
-        o.odds,
-        o.blocked
+    e.current_views,
+    e.target_views,
+    e.expected_speed AS speed,
 
-      FROM events e
+    e.deadline,
 
-      LEFT JOIN offers o
-      ON o.event_id = e.id
+    i.idx AS interval_index,
+    i.min_value,
+    i.max_value,
 
-      WHERE e.status = 'active'
+    o.probability,
+    o.odds,
+    o.blocked
 
-      ORDER BY e.deadline ASC, o.interval_index ASC
-    `);
+  FROM events e
+
+  LEFT JOIN intervals i ON i.event_id = e.id
+  LEFT JOIN offers o ON o.interval_id = i.id
+
+  WHERE e.status = 'active'
+
+  ORDER BY e.deadline ASC, i.idx ASC
+`);
 
     const marketsMap = {};
 
