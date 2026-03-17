@@ -37,8 +37,4 @@ export async function query(text, params) {
 
   return res;
 }
-import { query } from "./db.js"
 
-await query(
-  "SELECT * FROM events WHERE status='active'"
-)
